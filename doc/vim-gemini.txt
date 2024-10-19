@@ -1,0 +1,52 @@
+vim-gemini.txt  {A plugin to interact with Gemeni using API}
+
+==============================================================================
+CONTENTS                                                *vim-gemini-contents*
+
+    1. Requirement ...................... |vim-gemini-requirement|
+    2. About "CLI gemini"............... |vim-gemini-cli|
+    3. Settings.......................... |vim-gemini-settings|
+    4. Command........................... |vim-gemini-commands|
+
+
+Requirements                                  *vim-gemini-requirements*
+------------------------------------------------------------------------------
+
+Needs previous installation of gemini CLI tool, see |vim-gemini-cli|
+
+Supported VIM versions: Vim and coming soon Neovim.
+
+
+About "CLI gemini"                                    *vim-gemini-cli*
+------------------------------------------------------------------------------
+
+Under the hood this plugin uses "CLI gemini".
+See: https://github.com/mattn/gemini
+
+To configure this plugin do set environment variable "GEMINI_API_KEY"
+to the value you can retrieve here in you account: 
+https://beta.openai.com/account/api-keys
+
+Model used by CLI gemini is currently "TextDavinci003Engine".
+This model will reject questions longer than 4097 tokens .
+See: https://beta.openai.com/docs/models/gpt-3
+
+
+Settings                                           *vim-gemini-settings*
+------------------------------------------------------------------------------
+
+"g:gemini"  --- Allows you to set language to use for querying
+                      gemini. Supported languages are 'ja' for Japanese.
+		      Other values or unset will default to English.
+
+
+Commands:                                           *vim-gemini-commands*
+------------------------------------------------------------------------------
+
+*CodeReviewPleaseGemini*  ---  Launch a code review of current buffer.
+			 There are size limitations, see |vim-gemini-cli|
+*Gemini*                  ---  Ask a question to Gemini. Ranges are not allowed.
+			 For example you could write
+			 :Gemini How do I trim a string in golang?
+
+vim:tw=78:ts=8:ft=help:norl:
