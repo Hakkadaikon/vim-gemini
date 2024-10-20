@@ -33,7 +33,7 @@ function! s:gemini_cb_out(ch, msg) abort
   if l:msg['error'] != ''
     call s:write_text(l:winid, l:msg['error'])
   elseif l:msg['eof']
-    call s:write_text(l:winid, '')
+    call s:write_text(l:winid, "\n")
   endif
   call win_execute(l:winid, 'setlocal nomodifiable nomodified', 1)
 endfunction
