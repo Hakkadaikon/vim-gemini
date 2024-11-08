@@ -20,9 +20,7 @@ endfunction
 
 function! s:gemini_cb_out(winid, ch, msg) abort
   let l:msg = json_decode(a:msg)
-  if a:winid != -1
-    let l:winid = a:winid
-  else
+  if a:winid == -1
     let l:winid = bufwinid('__GEMINI__')
     if l:winid ==# -1
       silent noautocmd split __GEMINI__
@@ -31,15 +29,19 @@ function! s:gemini_cb_out(winid, ch, msg) abort
       wincmd p
       let l:winid = bufwinid('__GEMINI__')
     endif
+    call win_execute(l:winid, 'setlocal modifiable', 1)
+  else
+    let l:winid = a:winid
   endif
-  call win_execute(l:winid, 'setlocal modifiable', 1)
   call s:write_text(l:winid, l:msg['text'])
   if l:msg['error'] != ''
     call s:write_text(l:winid, l:msg['error'])
   elseif l:msg['eof']
     call s:write_text(l:winid, "\n")
   endif
-  call win_execute(l:winid, 'setlocal nomodifiable nomodified', 1)
+  if a:winid == -1
+    call win_execute(l:winid, 'setlocal nomodifiable nomodified', 1)
+  endif
 endfunction
 
 function! s:gemini_cb_err(ch, msg) abort
