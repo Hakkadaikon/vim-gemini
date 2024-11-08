@@ -18,15 +18,19 @@ function! s:write_text(winid, text) abort
   endfor
 endfunction
 
-function! s:gemini_cb_out(ch, msg) abort
+function! s:gemini_cb_out(winid, ch, msg) abort
   let l:msg = json_decode(a:msg)
-  let l:winid = bufwinid('__GEMINI__')
-  if l:winid ==# -1
-    silent noautocmd split __GEMINI__
-    setlocal buftype=nofile bufhidden=wipe noswapfile
-    setlocal wrap nonumber signcolumn=no filetype=markdown
-    wincmd p
+  if a:winid != -1
+    let l:winid = a:winid
+  else
     let l:winid = bufwinid('__GEMINI__')
+    if l:winid ==# -1
+      silent noautocmd split __GEMINI__
+      setlocal buftype=nofile bufhidden=wipe noswapfile
+      setlocal wrap nonumber signcolumn=no filetype=markdown
+      wincmd p
+      let l:winid = bufwinid('__GEMINI__')
+    endif
   endif
   call win_execute(l:winid, 'setlocal modifiable', 1)
   call s:write_text(l:winid, l:msg['text'])
@@ -44,7 +48,7 @@ endfunction
 
 function! gemini#send(text) abort
   let l:ch = s:get_channel()
-  call ch_setoptions(l:ch, {'out_cb': function('s:gemini_cb_out'), 'err_cb': function('s:gemini_cb_err')})
+  call ch_setoptions(l:ch, {'out_cb': function('s:gemini_cb_out', [-1]), 'err_cb': function('s:gemini_cb_err')})
   call ch_sendraw(l:ch, json_encode({'text': a:text}))
 endfunction
 
@@ -56,4 +60,11 @@ function! gemini#code_review_please() abort
   \  '',
   \] + getline(1, '$')
   call gemini#send(join(l:lines, "\n"))
+endfunction
+
+function! gemini#expand() abort
+  let l:ch = s:get_channel()
+  call ch_setoptions(l:ch, {'out_cb': function('s:gemini_cb_out', [bufwinid('%')]), 'err_cb': function('s:gemini_cb_err')})
+  call ch_sendraw(l:ch, json_encode({'text': getline('.')}))
+  return "\n"
 endfunction
