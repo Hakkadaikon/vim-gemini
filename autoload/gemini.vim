@@ -2,8 +2,8 @@ scriptencoding utf-8
 
 function! s:get_channel() abort
   if !exists('s:job') || job_status(s:job) !=# 'run'
-    let s:job = job_start(['gemini', '-json'], {'in_mode': 'json', 'out_mode': 'nl', 'noblock': 1})
-    let s:ch = job_getchannel(s:job)
+    let s:job = jobstart(['gemini', '-json'], {'in_mode': 'json', 'out_mode': 'nl', 'noblock': 1})
+    let s:ch = s:job " job_start() is the channel itself in Neovim
   endif
   return s:ch
 endfunction
@@ -18,7 +18,7 @@ function! s:write_text(winid, text) abort
   endfor
 endfunction
 
-function! s:gemini_cb_out(winid, ch, msg) abort
+function! s:gemini_cb_out(ch, winid, msg) abort
   let l:msg = json_decode(a:msg)
   if a:winid == -1
     let l:winid = bufwinid('__GEMINI__')
@@ -50,8 +50,9 @@ endfunction
 
 function! gemini#send(text) abort
   let l:ch = s:get_channel()
-  call ch_setoptions(l:ch, {'out_cb': function('s:gemini_cb_out', [-1]), 'err_cb': function('s:gemini_cb_err')})
-  call ch_sendraw(l:ch, json_encode({'text': a:text}))
+  " Pass the winid as a context to the callback
+  call ch_setoptions(l:ch, {'out_cb': function('s:gemini_cb_out', [v:null, -1]), 'err_cb': function('s:gemini_cb_err')})
+  call ch_send(l:ch, json_encode({'text': a:text}) .. "\n")
 endfunction
 
 function! gemini#code_review_please() abort
@@ -66,7 +67,8 @@ endfunction
 
 function! gemini#expand() abort
   let l:ch = s:get_channel()
-  call ch_setoptions(l:ch, {'out_cb': function('s:gemini_cb_out', [bufwinid('%')]), 'err_cb': function('s:gemini_cb_err')})
-  call ch_sendraw(l:ch, json_encode({'text': getline('.')}))
+  " Pass the current winid as a context
+  call ch_setoptions(l:ch, {'out_cb': function('s:gemini_cb_out', [v:null, bufwinid('%')]), 'err_cb': function('s:gemini_cb_err')})
+  call ch_send(l:ch, json_encode({'text': getline('.')}) .. "\n")
   return "\n"
 endfunction
